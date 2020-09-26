@@ -1,18 +1,76 @@
 import pandas as pd
+import numpy as np
 import math
+import sys 
 
 class D_Tree():
     def __init__(self, dataset, class_labels, attributes):
-        self.root = ID3_algorithm(dataset, class_labels, attributes)
+        self.root = ID3_algorithm(dataset, dataset, class_labels, attributes)
+        self.data = dataset
 
-    # Lets make a simple recursive function to travel down the array
-    # Lets assume input is in the form ['x','y', 'z'
-    def get_answer(self,example , tree_node):
-        if(tree_node.isleaf):
-            return tree_node.label
-        for child_node in self.root.below:
-            if child_node.attribute in example:
-                return self.get_answer(example, child_node)
+    #Lets make a funciton to evaluate accuracy
+    def get_accuracy(self, class_label):
+
+        correct_count = 0
+        #for each row in the dataset
+        for index,row in self.data.iterrows():
+            #print("Checking if " + str(row[class_label]) + " is equal to " + str(self.get_answer(row)))
+            if(row[class_label] == self.get_answer(row)):
+                #print("yes")
+                correct_count += 1
+        
+        #print(correct_count)
+        return correct_count/self.data[class_label].size
+
+    def get_answer(self, example):
+        if self.root.isleaf:
+            return self.root.label
+
+        for node in self.root.below:
+            if node.attribute in example.values.tolist():
+                if(node.isleaf):
+                    return node.label
+                for sub_node in node.below:
+                    if sub_node.attribute in example.values.tolist():
+                        if(sub_node.isleaf):
+                            return sub_node.label
+
+    # to get predictions
+    def get_predictions(self, dataset):
+
+        pred = []
+
+        #for each row in the dataset
+        for index,row in dataset.iterrows():
+            #print("Checking if " + str(row[class_label]) + " is equal to " + str(self.get_answer(row)))
+
+            #Assume False
+            answer = 0          # Shouldn't really do this, but helps graphing over a larger range than the orginal dataset
+
+            #print(row)
+                
+            for node in self.root.below:
+
+                if row[self.root.splitting_att] in node.attribute:
+                    #print(f"{row[self.root.splitting_att]} is in {node.attribute}" )
+
+                    if(node.isleaf):
+                        answer = node.label
+                        #print("found it")
+                        #break
+                    for sub_node in node.below:
+                        if row[node.splitting_att] in sub_node.attribute:
+                            #print(f"YOOOOOO {row[node.splitting_att]} is in {sub_node.attribute}" )
+                            if(sub_node.isleaf):
+                                answer = sub_node.label
+                                #break
+
+            #print(f"{row} got this answer: {answer}")
+
+            pred.append( answer )
+
+
+        return pred
 
     def __str__(self):
         string = 'Root- ' + str(self.root)
@@ -35,9 +93,10 @@ class tree_node:
         self.data = data
         self.attribute = attribute
         self.isleaf = isleaf
+        self.splitting_att = None
     
     def __str__(self):
-        return f"Tree Node: Label(0/1 yes/no) {self.label} Attribute: {self.attribute}"
+        return f"Tree Node: Label(0/1 yes/no) {self.label}|| Splitting: {self.splitting_att} Attribute: {self.attribute}"
     
     def __repr__(self):
         return str(self)
@@ -73,6 +132,8 @@ def best_attribute(dataset, class_label, attributes):
             if IG > maxIG:
                 maxIG = IG
                 highest_label = att
+                print(maxIG)
+    print(highest_label)
 
     return highest_label
 
@@ -81,7 +142,7 @@ def best_attribute(dataset, class_label, attributes):
 # 
 # Input: dataset (pandas DataFrame) , class_label, attributes (column labels)
 
-def ID3_algorithm(dataset, class_label, attributes):
+def ID3_algorithm(ORIGdataset, dataset, class_label, attributes):
 
     #Create a Root Node for the Tree
     root = tree_node(dataset, False, 'None')
@@ -91,10 +152,14 @@ def ID3_algorithm(dataset, class_label, attributes):
 
     if len(unique_classes) == 1:
         root.label = unique_classes[0]
+        root.isleaf = True
+        #print(root.label)
         return root
 
     if len(attributes) == 0:
         root.label = dataset[class_label].value_counts().idxmax()
+        root.isleaf = True
+       # print(root.label)
         return root
 
     #Otherwise, begin
@@ -103,10 +168,10 @@ def ID3_algorithm(dataset, class_label, attributes):
     best_att = best_attribute(dataset, class_label, attributes)
 
     #Add to root
-    root.attribute = best_att 
+    root.splitting_att = best_att 
     
 
-    for sub_attr in pd.unique(dataset[best_att]):
+    for sub_attr in pd.unique(ORIGdataset[best_att]):
         # get the data for the sub attribute
         subset_data = dataset.loc[dataset[best_att] == sub_attr]
 
@@ -120,23 +185,19 @@ def ID3_algorithm(dataset, class_label, attributes):
         if subset_data.empty:
             new_node = tree_node(dataset, True, sub_attr)
             new_node.label = dataset[class_label].value_counts().idxmax()# most common label within data
+            #print(root.label)
             root.below.append( new_node )
         else:
             a_copy = attributes.copy()
             a_copy.remove(best_att)
-            new_node = ID3_algorithm(subset_data, class_label, a_copy)
+            new_node = ID3_algorithm( ORIGdataset, subset_data, class_label, a_copy)
             new_node.attribute = sub_attr
             root.below.append( new_node )
+            root.label = -1
 
         #print(root.below)
     #end
     return root
-
-
-
-
-
-
 
 # Calculates Entropy of a given class label array
 # 
