@@ -1,11 +1,17 @@
+# Imports
 import pandas as pd
 import numpy as np
 import math
 import sys 
 
-class D_Tree():
+# Tree Class
+class D_Tree():\
+    #Initializer
     def __init__(self, dataset, class_labels, attributes):
+        # create the tree and save the root
         self.root = ID3_algorithm(dataset, dataset, class_labels, attributes, 3)
+        
+        # save the dataset
         self.data = dataset
 
     #Lets make a funciton to evaluate accuracy
@@ -22,6 +28,7 @@ class D_Tree():
         #print(correct_count)
         return correct_count/self.data[class_label].size
 
+    # Given a single example(row), find the class label from travelling through the tree
     def get_answer(self, example):
         if self.root.isleaf:
             return self.root.label
@@ -69,9 +76,9 @@ class D_Tree():
 
             pred.append( answer )
 
-
         return pred
 
+    # str override for tree
     def __str__(self):
         string = 'Root- ' + str(self.root)
         
@@ -83,18 +90,22 @@ class D_Tree():
         return string
 
 
-
+# Tree node class
 class tree_node:
+    #Initilize node attributes
     def __init__(self, data, isleaf, attribute):
 
         # 0 is a no , 1 is a yes
         self.label = -1
-        self.below = []
+
+        self.below = [] # Stores all nodes below it
+
         self.data = data
-        self.attribute = attribute
+        self.attribute = attribute  #attribute associated with node
         self.isleaf = isleaf
-        self.splitting_att = None
+        self.splitting_att = None # attribute to split on when traversing the node
     
+    # str override
     def __str__(self):
         return f"Tree Node: Label(0/1 yes/no) {self.label}|| Splitting: {self.splitting_att} Attribute: {self.attribute}"
     
@@ -140,7 +151,7 @@ def best_attribute(dataset, class_label, attributes):
 
 # Tree building algorithm
 # 
-# Input: dataset (pandas DataFrame) , class_label, attributes (column labels)
+# Input: ORIGdataset unmodified dataset, dataset (pandas DataFrame... binned) , class_label, attributes (column labels)
 
 def ID3_algorithm(ORIGdataset, dataset, class_label, attributes, depth):
 
@@ -175,12 +186,6 @@ def ID3_algorithm(ORIGdataset, dataset, class_label, attributes, depth):
         # get the data for the sub attribute
         subset_data = dataset.loc[dataset[best_att] == sub_attr]
 
-        #add a new tree branch below the root
-        #new_node = tree_node(data, False, sub_attr)# sub set of the data set for val)
-        #new_node.attribute = sub_attr a
-
-        
-        #print(dataset.loc[dataset[best_att] == val])
 
         if subset_data.empty:
             new_node = tree_node(dataset, True, sub_attr)
