@@ -2,13 +2,13 @@
 import pandas as pd
 import numpy as np
 import math
-import sys 
 
 # Tree Class
-class D_Tree():\
+class D_Tree():
     #Initializer
     def __init__(self, dataset, class_labels, attributes):
         # create the tree and save the root
+        # Limit to max depth of three
         self.root = ID3_algorithm(dataset, dataset, class_labels, attributes, 3)
         
         # save the dataset
@@ -42,35 +42,32 @@ class D_Tree():\
                         if(sub_node.isleaf):
                             return sub_node.label
 
-    # to get predictions
+    # For testing on unbinned data, and returning a [] of class labels
     def get_predictions(self, dataset):
 
+        #array for storing predictions
         pred = []
 
         #for each row in the dataset
         for index,row in dataset.iterrows():
-            #print("Checking if " + str(row[class_label]) + " is equal to " + str(self.get_answer(row)))
-
             #Assume False
             answer = 0          # Shouldn't really do this, but helps graphing over a larger range than the orginal dataset
-
-            #print(row)
-                
+            
+            #Travel through the tree
             for node in self.root.below:
-
+                
+                #if the value of the dataset at the splitting attribute is in any interval/value contained in the nodes attribute
                 if row[self.root.splitting_att] in node.attribute:
-                    #print(f"{row[self.root.splitting_att]} is in {node.attribute}" )
 
+                    #get answer if leaf
                     if(node.isleaf):
                         answer = node.label
-                        #print("found it")
-                        #break
+                    
+                    #continue looking
                     for sub_node in node.below:
                         if row[node.splitting_att] in sub_node.attribute:
-                            #print(f"YOOOOOO {row[node.splitting_att]} is in {sub_node.attribute}" )
                             if(sub_node.isleaf):
                                 answer = sub_node.label
-                                #break
 
             #print(f"{row} got this answer: {answer}")
 
@@ -124,9 +121,10 @@ def calculate_info_gain(column_label, class_label, dataset):
     subset_entropy_sum = 0
     counts = dataset[column_label].value_counts()
 
+    #get all subset entropys
     for bin in pd.unique(dataset[column_label]):
         bin_entropy = calculate_entropy(dataset.loc[dataset[column_label] == bin][class_label])
-        subset_entropy_sum += counts[bin] / dataset.size * bin_entropy
+        subset_entropy_sum += counts[bin] / dataset[column_label].size * bin_entropy
 
     #print(subset_entropy_sum)
 
