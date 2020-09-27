@@ -8,3 +8,5 @@ Path to data: /PokemonData/
 
 [Open in Colab!](https://colab.research.google.com/drive/1iApHgAEfdWuAD7DzI1Fo0vYRx9YlHad4?usp=sharing)
 
+![Graphs](https://github.com/cgarchbold/CS460_Assignment1/blob/master/Surface_graphs.jpg)
+
