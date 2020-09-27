@@ -5,7 +5,7 @@ import sys
 
 class D_Tree():
     def __init__(self, dataset, class_labels, attributes):
-        self.root = ID3_algorithm(dataset, dataset, class_labels, attributes)
+        self.root = ID3_algorithm(dataset, dataset, class_labels, attributes, 3)
         self.data = dataset
 
     #Lets make a funciton to evaluate accuracy
@@ -132,8 +132,8 @@ def best_attribute(dataset, class_label, attributes):
             if IG > maxIG:
                 maxIG = IG
                 highest_label = att
-                print(maxIG)
-    print(highest_label)
+                #print(maxIG)
+    #print(highest_label)
 
     return highest_label
 
@@ -142,7 +142,7 @@ def best_attribute(dataset, class_label, attributes):
 # 
 # Input: dataset (pandas DataFrame) , class_label, attributes (column labels)
 
-def ID3_algorithm(ORIGdataset, dataset, class_label, attributes):
+def ID3_algorithm(ORIGdataset, dataset, class_label, attributes, depth):
 
     #Create a Root Node for the Tree
     root = tree_node(dataset, False, 'None')
@@ -156,7 +156,7 @@ def ID3_algorithm(ORIGdataset, dataset, class_label, attributes):
         #print(root.label)
         return root
 
-    if len(attributes) == 0:
+    if len(attributes) == 0 or depth == 1:
         root.label = dataset[class_label].value_counts().idxmax()
         root.isleaf = True
        # print(root.label)
@@ -190,7 +190,7 @@ def ID3_algorithm(ORIGdataset, dataset, class_label, attributes):
         else:
             a_copy = attributes.copy()
             a_copy.remove(best_att)
-            new_node = ID3_algorithm( ORIGdataset, subset_data, class_label, a_copy)
+            new_node = ID3_algorithm( ORIGdataset, subset_data, class_label, a_copy, depth -1)
             new_node.attribute = sub_attr
             root.below.append( new_node )
             root.label = -1
